@@ -164,7 +164,7 @@ func (dt *Default) HTMLTemplate() string {
     }
     cite {
       display: block;
-      font-size: 0.925rem; 
+      font-size: 0.925rem;
     }
     cite:before {
       content: "\2014 \0020";
@@ -294,121 +294,103 @@ func (dt *Default) HTMLTemplate() string {
                     {{ end }}
                     {{ if (ne .Email.Body.FreeMarkdown "") }}
                       {{ .Email.Body.FreeMarkdown.ToHTML }}
-                    {{ else }}
+                    {{ end }}
 
-                      {{ with .Email.Body.Dictionary }} 
-                        {{ if gt (len .) 0 }}
-                          <dl class="body-dictionary">
-                            {{ range $entry := . }}
-                              <dt>{{ $entry.Key }}:</dt>
-                              <dd>{{ $entry.Value }}</dd>
-                            {{ end }}
-                          </dl>
-                        {{ end }}
+                    {{ with .Email.Body.Dictionary }}
+                      {{ if gt (len .) 0 }}
+                        <dl class="body-dictionary">
+                          {{ range $entry := . }}
+                            <dt>{{ $entry.Key }}:</dt>
+                            <dd>{{ $entry.Value }}</dd>
+                          {{ end }}
+                        </dl>
                       {{ end }}
+                    {{ end }}
 
-                      <!-- Table -->
-                      {{ with .Email.Body.Table }}
-                        {{ $data := .Data }}
-                        {{ $columns := .Columns }}
-                        {{ if gt (len $data) 0 }}
-                          <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td colspan="2">
-                                <table class="data-table" width="100%" cellpadding="0" cellspacing="0">
+                    <!-- Table -->
+                    {{ with .Email.Body.Table }}
+                      {{ $data := .Data }}
+                      {{ $columns := .Columns }}
+                      {{ if gt (len $data) 0 }}
+                        <table class="data-wrapper" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td colspan="2">
+                              <table class="data-table" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                  {{ $col := index $data 0 }}
+                                  {{ range $entry := $col }}
+                                    <th
+                                      {{ with $columns }}
+                                        {{ $width := index .CustomWidth $entry.Key }}
+                                        {{ with $width }}
+                                          width="{{ . }}"
+                                        {{ end }}
+                                        {{ $align := index .CustomAlignment $entry.Key }}
+                                        {{ with $align }}
+                                          style="text-align:{{ . }}"
+                                        {{ end }}
+                                      {{ end }}
+                                    >
+                                      <p>{{ $entry.Key }}</p>
+                                    </th>
+                                  {{ end }}
+                                </tr>
+                                {{ range $row := $data }}
                                   <tr>
-                                    {{ $col := index $data 0 }}
-                                    {{ range $entry := $col }}
-                                      <th
+                                    {{ range $cell := $row }}
+                                      <td
                                         {{ with $columns }}
-                                          {{ $width := index .CustomWidth $entry.Key }}
-                                          {{ with $width }}
-                                            width="{{ . }}"
-                                          {{ end }}
-                                          {{ $align := index .CustomAlignment $entry.Key }}
+                                          {{ $align := index .CustomAlignment $cell.Key }}
                                           {{ with $align }}
                                             style="text-align:{{ . }}"
                                           {{ end }}
                                         {{ end }}
                                       >
-                                        <p>{{ $entry.Key }}</p>
-                                      </th>
+                                        {{ $cell.Value }}
+                                      </td>
                                     {{ end }}
                                   </tr>
-                                  {{ range $row := $data }}
-                                    <tr>
-                                      {{ range $cell := $row }}
-                                        <td
-                                          {{ with $columns }}
-                                            {{ $align := index .CustomAlignment $cell.Key }}
-                                            {{ with $align }}
-                                              style="text-align:{{ . }}"
-                                            {{ end }}
-                                          {{ end }}
-                                        >
-                                          {{ $cell.Value }}
-                                        </td>
-                                      {{ end }}
-                                    </tr>
-                                  {{ end }}
-                                </table>
+                                {{ end }}
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      {{ end }}
+                    {{ end }}
+
+                    <!-- Action -->
+                    {{ with .Email.Body.Actions }}
+                      {{ if gt (len .) 0 }}
+                        {{ range $action := . }}
+                          <p>{{ $action.Instructions }}</p>
+                          <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td align="center">
+                                <div>
+                                  <a href="{{ $action.Button.Link }}" class="button" style="{{ with $action.Button.Color }}background-color: {{ . }};{{ end }} {{ with $action.Button.TextColor }}color: {{ . }};{{ end }}" target="_blank">
+                                    {{ $action.Button.Text }}
+                                  </a>
+                                </div>
                               </td>
                             </tr>
                           </table>
                         {{ end }}
                       {{ end }}
-
-                      <!-- Action -->
-                      {{ with .Email.Body.Actions }}
-                        {{ if gt (len .) 0 }}
-                          {{ range $action := . }}
-                            <p>{{ $action.Instructions }}</p>
-                            <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0">
-                              <tr>
-                                <td align="center">
-                                  <div>
-                                    <a href="{{ $action.Button.Link }}" class="button" style="{{ with $action.Button.Color }}background-color: {{ . }};{{ end }} {{ with $action.Button.TextColor }}color: {{ . }};{{ end }}" target="_blank">
-                                      {{ $action.Button.Text }}
-                                    </a>
-                                  </div>
-                                </td>
-                              </tr>
-                            </table>
-                          {{ end }}
-                        {{ end }}
-                      {{ end }}
-
                     {{ end }}
-                    {{ with .Email.Body.Outros }} 
-                        {{ if gt (len .) 0 }}
-                          {{ range $line := . }}
-                            <p>{{ $line }}</p>
-                          {{ end }}
+
+                    {{ with .Email.Body.Outros }}
+                      {{ if gt (len .) 0 }}
+                        {{ range $line := . }}
+                          <p>{{ $line }}</p>
                         {{ end }}
                       {{ end }}
+                    {{ end }}
 
                     <p>
                       {{.Email.Body.Signature}},
                       <br />
                       {{.Hermes.Product.Name}}
                     </p>
-
-                    {{ if (eq .Email.Body.FreeMarkdown "") }}
-                      {{ with .Email.Body.Actions }} 
-                        <table class="body-sub">
-                          <tbody>
-                              {{ range $action := . }}
-                                <tr>
-                                  <td>
-                                    <p class="sub">{{$.Hermes.Product.TroubleText | replace "{ACTION}" $action.Button.Text}}</p>
-                                    <p class="sub"><a href="{{ $action.Button.Link }}">{{ $action.Button.Link }}</a></p>
-                                  </td>
-                                </tr>
-                              {{ end }}
-                          </tbody>
-                        </table>
-                      {{ end }}
-                    {{ end }}
                   </td>
                 </tr>
               </table>
@@ -477,13 +459,13 @@ func (dt *Default) PlainTextTemplate() string {
       </table>
     {{ end }}
   {{ end }}
-  {{ with .Email.Body.Actions }} 
+  {{ with .Email.Body.Actions }}
     {{ range $action := . }}
-      <p>{{ $action.Instructions }} {{ $action.Button.Link }}</p> 
+      <p>{{ $action.Instructions }} {{ $action.Button.Link }}</p>
     {{ end }}
   {{ end }}
 {{ end }}
-{{ with .Email.Body.Outros }} 
+{{ with .Email.Body.Outros }}
   {{ range $line := . }}
     <p>{{ $line }}<p>
   {{ end }}
