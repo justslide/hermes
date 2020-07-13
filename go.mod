@@ -1,4 +1,4 @@
-module github.com/justslide/hermes
+module github.com/justslide/hermes/v2
 
 go 1.13
 
